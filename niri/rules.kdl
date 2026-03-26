@@ -1,0 +1,40 @@
+// Window rules let you adjust behavior for individual windows.
+// Find more information on the wiki:
+// https://github.com/YaLTeR/niri/wiki/Configuration:-Window-Rules
+window-rule {
+    geometry-corner-radius 10
+    clip-to-geometry true
+}
+
+window-rule {
+    match app-id="firefox"
+    match app-id="Code"
+    match app-id="dev.zed.Zed"
+    open-maximized true
+}
+
+window-rule {
+    match app-id="org.gnome.Calculator"
+    match app-id="com.saivert.pwvucontrol"
+    match app-id="org.pulseaudio.pavucontrol"
+    match app-id="pavucontrol"
+    match app-id="Alacritty" title="Updater"
+    match app-id="Alacritty" title="nmtui"
+    match app-id="Alacritty" title="Wallpaper Selector"
+    match app-id="kitty" title="Updater"
+    match app-id="kitty" title="nmtui"
+    match app-id="kitty" title="Wallpaper Selector"
+    match app-id="foot" title="Updater"
+    match app-id="foot" title="nmtui"
+    match app-id="foot" title="Wallpaper Selector"
+    match app-id="org.gnome.Terminal" title="Updater"
+    match app-id="org.gnome.Terminal" title="nmtui"
+    match app-id="org.gnome.Terminal" title="Wallpaper Selector"
+    match app-id="org.gnome.Console" title="Updater"
+    match app-id="org.gnome.Console" title="nmtui"
+    match app-id="org.gnome.Console" title="Wallpaper Selector"
+    open-floating true
+    shadow {
+        on
+    }
+}
