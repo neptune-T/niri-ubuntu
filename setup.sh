@@ -49,7 +49,10 @@ BUILD_ROOT="${XDG_CACHE_HOME:-$HOME/.cache}/niri-setup"
 TIMESTAMP=$(date +%Y%m%d%H%M%S)
 APT_SOURCES_FILE=""
 RUST_MIN_VERSION="1.85.0"
+GO_MIN_VERSION="1.20.0"
+GO_TOOLCHAIN_ROOT="${XDG_DATA_HOME:-$HOME/.local/share}/niri-setup-toolchains"
 declare -a CARGO_CMD=(cargo)
+declare -a GO_CMD=(go)
 
 run_as_root() {
   if [ "${EUID:-$(id -u)}" -eq 0 ]; then
@@ -148,6 +151,99 @@ cargo_version() {
   fi
 
   cargo --version 2>/dev/null | awk '{ print $2 }'
+}
+
+go_version() {
+  if ! have_cmd go; then
+    return 1
+  fi
+
+  go version 2>/dev/null | awk '{ print $3 }' | sed 's/^go//'
+}
+
+go_platform_arch() {
+  case "$(uname -m)" in
+    x86_64|amd64)
+      printf 'amd64\n'
+      ;;
+    aarch64|arm64)
+      printf 'arm64\n'
+      ;;
+    armv6l)
+      printf 'armv6l\n'
+      ;;
+    *)
+      echo "[ERROR] unsupported architecture for automatic Go bootstrap: $(uname -m)"
+      exit 1
+      ;;
+  esac
+}
+
+install_go_toolchain() {
+  local go_version_tag
+  local arch
+  local archive
+  local url
+  local temp_dir
+
+  echo "[INFO] installing a newer Go toolchain..."
+
+  if have_cmd curl; then
+    go_version_tag=$(curl -fsSL https://go.dev/VERSION?m=text | head -n 1)
+  elif have_cmd wget; then
+    go_version_tag=$(wget -qO- https://go.dev/VERSION?m=text | head -n 1)
+  else
+    echo "[ERROR] Go bootstrap requires curl or wget"
+    exit 1
+  fi
+
+  if [ -z "$go_version_tag" ]; then
+    echo "[ERROR] failed to determine the latest Go release"
+    exit 1
+  fi
+
+  arch=$(go_platform_arch)
+  archive="${go_version_tag}.linux-${arch}.tar.gz"
+  url="https://go.dev/dl/${archive}"
+  temp_dir=$(mktemp -d)
+
+  mkdir -p "$GO_TOOLCHAIN_ROOT"
+
+  if have_cmd curl; then
+    curl -fL "$url" -o "$temp_dir/$archive"
+  else
+    wget -O "$temp_dir/$archive" "$url"
+  fi
+
+  rm -rf "$GO_TOOLCHAIN_ROOT/go"
+  tar -C "$GO_TOOLCHAIN_ROOT" -xzf "$temp_dir/$archive"
+  rm -rf "$temp_dir"
+
+  export PATH="$GO_TOOLCHAIN_ROOT/go/bin:$HOME/.cargo/bin:$HOME/.local/bin:$PATH"
+}
+
+ensure_modern_go_toolchain() {
+  local system_go_version=""
+
+  if have_cmd go; then
+    system_go_version=$(go_version || true)
+    if version_gte "$system_go_version" "$GO_MIN_VERSION"; then
+      GO_CMD=(go)
+      return 0
+    fi
+  fi
+
+  echo "[WARN] go ${system_go_version:-missing} is too old for current cliphist releases."
+  install_go_toolchain
+
+  local installed_go_version
+  installed_go_version=$("$GO_TOOLCHAIN_ROOT/go/bin/go" version | awk '{ print $3 }' | sed 's/^go//')
+  if ! version_gte "$installed_go_version" "$GO_MIN_VERSION"; then
+    echo "[ERROR] bootstrapped Go is still too old: $installed_go_version"
+    exit 1
+  fi
+
+  GO_CMD=("$GO_TOOLCHAIN_ROOT/go/bin/go")
 }
 
 install_rustup() {
@@ -399,6 +495,7 @@ install_apt_packages() {
       libgbm-dev
       libgdk-pixbuf-2.0-dev
       libinput-dev
+      liblz4-dev
       libpam0g-dev
       libpango1.0-dev
       libpipewire-0.3-dev
@@ -445,7 +542,8 @@ install_cliphist_from_source() {
     return 0
   fi
 
-  GOBIN="$HOME/.local/bin" go install github.com/sentriz/cliphist@latest
+  ensure_modern_go_toolchain
+  GOBIN="$HOME/.local/bin" "${GO_CMD[@]}" install go.senan.xyz/cliphist@latest
 }
 
 install_fuzzel_from_source() {
