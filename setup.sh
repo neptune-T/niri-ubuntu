@@ -51,6 +51,7 @@ APT_SOURCES_FILE=""
 RUST_MIN_VERSION="1.85.0"
 GO_MIN_VERSION="1.20.0"
 GO_TOOLCHAIN_ROOT="${XDG_DATA_HOME:-$HOME/.local/share}/niri-setup-toolchains"
+LIBDISPLAY_INFO_VERSION="0.3.0"
 declare -a CARGO_CMD=(cargo)
 declare -a GO_CMD=(go)
 
@@ -143,6 +144,22 @@ version_gte() {
 
   [ -n "$current" ] && [ -n "$required" ] || return 1
   [ "$(printf '%s\n%s\n' "$required" "$current" | sort -V | head -n 1)" = "$required" ]
+}
+
+prepend_pkg_config_path() {
+  local path="$1"
+
+  if [ -z "${PKG_CONFIG_PATH:-}" ]; then
+    export PKG_CONFIG_PATH="$path"
+    return 0
+  fi
+
+  case ":$PKG_CONFIG_PATH:" in
+    *":$path:"*) ;;
+    *)
+      export PKG_CONFIG_PATH="$path:$PKG_CONFIG_PATH"
+      ;;
+  esac
 }
 
 cargo_version() {
@@ -244,6 +261,52 @@ ensure_modern_go_toolchain() {
   fi
 
   GO_CMD=("$GO_TOOLCHAIN_ROOT/go/bin/go")
+}
+
+have_compatible_libdisplay_info() {
+  pkg-config --exists "libdisplay-info >= 0.1.0" "libdisplay-info < 0.4.0"
+}
+
+install_libdisplay_info_from_source() {
+  local archive="libdisplay-info-${LIBDISPLAY_INFO_VERSION}.tar.bz2"
+  local url="https://gitlab.freedesktop.org/emersion/libdisplay-info/-/archive/${LIBDISPLAY_INFO_VERSION}/${archive}"
+  local archive_path="$BUILD_ROOT/$archive"
+  local src_dir="$BUILD_ROOT/libdisplay-info-${LIBDISPLAY_INFO_VERSION}"
+
+  if have_compatible_libdisplay_info; then
+    prepend_pkg_config_path "/usr/local/lib/x86_64-linux-gnu/pkgconfig"
+    prepend_pkg_config_path "/usr/local/lib/pkgconfig"
+    prepend_pkg_config_path "/usr/local/share/pkgconfig"
+    return 0
+  fi
+
+  echo "[INFO] building libdisplay-info ${LIBDISPLAY_INFO_VERSION} from source for niri..."
+  mkdir -p "$BUILD_ROOT"
+  rm -rf "$src_dir" "$archive_path"
+
+  if have_cmd curl; then
+    curl -fL "$url" -o "$archive_path"
+  elif have_cmd wget; then
+    wget -O "$archive_path" "$url"
+  else
+    echo "[ERROR] downloading libdisplay-info requires curl or wget"
+    exit 1
+  fi
+
+  tar -C "$BUILD_ROOT" -xf "$archive_path"
+  meson setup "$src_dir/build" "$src_dir" --prefix=/usr/local --buildtype=release
+  meson compile -C "$src_dir/build"
+  run_as_root meson install -C "$src_dir/build"
+  run_as_root ldconfig
+
+  prepend_pkg_config_path "/usr/local/lib/x86_64-linux-gnu/pkgconfig"
+  prepend_pkg_config_path "/usr/local/lib/pkgconfig"
+  prepend_pkg_config_path "/usr/local/share/pkgconfig"
+
+  if ! have_compatible_libdisplay_info; then
+    echo "[ERROR] libdisplay-info is still unavailable to pkg-config after installation"
+    exit 1
+  fi
 }
 
 install_rustup() {
@@ -480,6 +543,7 @@ install_apt_packages() {
       curl
       git
       golang-go
+      hwdata
       meson
       ninja-build
       pkg-config
@@ -576,7 +640,7 @@ build_missing_ubuntu_packages() {
   mkdir -p "$BUILD_ROOT" "$HOME/.local/bin"
 
   if ! apt_has_candidate libdisplay-info-dev; then
-    echo "[WARN] libdisplay-info-dev is unavailable on Ubuntu ${VERSION_ID:-unknown}; building niri from source may fail."
+    echo "[WARN] libdisplay-info-dev is unavailable on Ubuntu ${VERSION_ID:-unknown}; will build libdisplay-info from source for niri."
   fi
 
   ensure_modern_rust_toolchain
@@ -586,6 +650,7 @@ build_missing_ubuntu_packages() {
   install_cargo_package alacritty alacritty https://github.com/alacritty/alacritty.git
   install_cliphist_from_source
   install_fuzzel_from_source
+  install_libdisplay_info_from_source
   install_cargo_package niri niri https://github.com/YaLTeR/niri.git
 }
 
