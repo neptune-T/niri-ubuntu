@@ -453,6 +453,7 @@ install_apt_packages() {
     waybar
     wireplumber
     wl-clipboard
+    wofi
     wlogout
     xwayland
   )
@@ -549,6 +550,18 @@ install_cliphist_from_source() {
 install_fuzzel_from_source() {
   if have_cmd fuzzel; then
     return 0
+  fi
+
+  if have_cmd pkg-config; then
+    local pixman_version=""
+    pixman_version=$(pkg-config --modversion pixman-1 2>/dev/null || true)
+    if [ -n "$pixman_version" ] && ! version_gte "$pixman_version" "0.46.0"; then
+      echo "[WARN] pixman-1 $pixman_version is too old for current fuzzel source builds."
+      if have_cmd wofi; then
+        echo "[WARN] using wofi as the launcher/dmenu fallback on this Ubuntu release."
+        return 0
+      fi
+    fi
   fi
 
   local src_dir="$BUILD_ROOT/fuzzel"

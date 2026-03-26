@@ -1,11 +1,11 @@
 binds {
     // Applications
     Mod+Return      { spawn-sh "$NIRICONF/scripts/open-terminal.sh default"; }
-    Mod+Ctrl+Return { spawn-sh "fuzzel --config $NIRICONF/fuzzel/fuzzel.ini"; }
+    Mod+Ctrl+Return { spawn-sh "$NIRICONF/scripts/menu.sh launcher --config $NIRICONF/fuzzel/fuzzel.ini"; }
     Mod+B           { spawn-sh "firefox"; }
     Mod+E           { spawn-sh "nautilus"; }
     Mod+L           { spawn-sh "$NIRICONF/scripts/swaylock.sh"; }
-    Mod+C           { spawn-sh "cliphist list | fuzzel --dmenu --config $NIRICONF/fuzzel/clipboard.ini | cliphist decode | wl-copy"; }
+    Mod+C           { spawn-sh "cliphist list | $NIRICONF/scripts/menu.sh dmenu --config $NIRICONF/fuzzel/clipboard.ini | cliphist decode | wl-copy"; }
     Mod+I           { spawn-sh "$NIRICONF/scripts/change-idle-time.sh"; }
     Mod+P           { spawn-sh "$NIRICONF/scripts/change-power-profile.sh"; }
     Mod+U           { spawn-sh "$NIRICONF/scripts/open-terminal.sh float 'Updater' $NIRICONF/waybar/modules/install-updates.sh"; }

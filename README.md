@@ -86,6 +86,7 @@ The installer now matches the current codebase behavior:
   - Automatically bootstraps a newer Rust stable toolchain with `rustup` when the distro `cargo` is too old for modern crates
   - Automatically bootstraps a newer Go toolchain when the distro `go` is too old for current `cliphist`
   - Installs extra native build dependencies needed by source builds, including packages such as `liblz4-dev`
+  - Uses `wofi` as a launcher fallback when the distro is too old to build current `fuzzel`
   - Installs source-built binaries into `~/.local/bin`
 
 > [!IMPORTANT]
@@ -123,6 +124,7 @@ The installer then symlinks these managed directories into `~/.config`:
 
 Several scripts were adjusted to be distro-friendly:
 
+- **Launcher fallback:** uses `fuzzel` when available, otherwise falls back to `wofi`
 - **Terminal fallback:** tries `alacritty`, then `kitty`, `foot`, `gnome-terminal`, and `kgx`
 - **Audio control fallback:** tries `pwvucontrol`, then `pavucontrol`
 - **Polkit agent startup:** resolves common `polkit-gnome` installation paths
