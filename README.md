@@ -93,6 +93,9 @@ The installer now matches the current codebase behavior:
 > [!IMPORTANT]
 > On Ubuntu 22.04, the first install can take a while because several required packages are not available in the default repositories and are built from source.
 
+> [!NOTE]
+> On Ubuntu 22.04, `setup.sh` now rewrites the repo's modular `niri` config into a single flat `config.kdl` during deployment, because the pinned `niri v25.02` fallback does not support top-level `include` nodes. If you installed an earlier revision of this repo, rerun `./setup.sh` or `./setup.sh --skip-install` once to redeploy the compatible config.
+
 ### Installer Options
 
 ```bash

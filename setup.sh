@@ -477,6 +477,66 @@ EOF
   done
 }
 
+make_niri_config_jammy_compatible() {
+  local config_file="$1"
+
+  [ -f "$config_file" ] || return 0
+
+  python3 - "$config_file" <<'PY'
+import re
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+lines = path.read_text().splitlines()
+out = []
+skip_depth = 0
+
+def block_delta(text: str) -> int:
+    return text.count("{") - text.count("}")
+
+for line in lines:
+    stripped = line.strip()
+
+    if skip_depth > 0:
+        skip_depth += block_delta(line)
+        continue
+
+    if stripped.startswith("recent-windows "):
+        skip_depth = block_delta(line)
+        continue
+
+    if stripped in {"background-color \"transparent\"", "place-within-backdrop true"}:
+        continue
+
+    if "toggle-overview;" in stripped:
+        continue
+
+    if stripped.startswith("hot-corners "):
+        skip_depth = block_delta(line)
+        continue
+
+    if stripped.startswith("spawn-sh-at-startup "):
+        converted = line.replace("spawn-sh-at-startup", "spawn-at-startup", 1)
+        match = re.match(r'(\s*)spawn-at-startup "(.*)"\s*$', converted)
+        if match:
+          indent, command = match.groups()
+          escaped = command.replace("\\", "\\\\").replace('"', '\\"')
+          converted = f'{indent}spawn-at-startup "sh" "-lc" "{escaped}"'
+        out.append(converted)
+        continue
+
+    if "spawn-sh " in line:
+        converted = line.replace("spawn-sh ", 'spawn "sh" "-lc" ', 1)
+        out.append(converted)
+        continue
+
+    out.append(line)
+
+path.write_text("\n".join(out) + "\n")
+PY
+}
+
 deploy_files() {
   local stage_dir
   stage_dir=$(mktemp -d)
@@ -505,6 +565,9 @@ deploy_files() {
 
   replace_placeholders "$stage_dir"
   build_niri_config "$stage_dir" "$niri_config_mode"
+  if [ "$niri_config_mode" = "flat" ]; then
+    make_niri_config_jammy_compatible "$stage_dir/niri/config.kdl"
+  fi
 
   mkdir -p "$(dirname "$INSTALL_ROOT")"
   if [ -e "$INSTALL_ROOT" ] || [ -L "$INSTALL_ROOT" ]; then
