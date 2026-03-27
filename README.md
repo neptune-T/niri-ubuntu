@@ -82,11 +82,12 @@ The installer now matches the current codebase behavior:
 
 - **Ubuntu / Debian-based**
   - Uses `apt` for packages available in the distro repositories
-  - Falls back to source builds for missing packages such as `niri`, `fuzzel`, `cliphist`, `swww`, `alacritty`, and `starship`
+  - Falls back to source builds for missing packages such as `fuzzel`, `cliphist`, `swww`, `alacritty`, and `starship`
   - Automatically bootstraps a newer Rust stable toolchain with `rustup` when the distro `cargo` is too old for modern crates
   - Automatically bootstraps a newer Go toolchain when the distro `go` is too old for current `cliphist`
   - Installs extra native build dependencies needed by source builds, including packages such as `liblz4-dev`
   - Uses `wofi` as a launcher fallback when the distro is too old to build current `fuzzel`
+  - On Ubuntu 22.04, installs an older `niri` fallback release instead of the latest upstream version because the distro PipeWire / libspa / libinput stacks are too old for current upstream `niri`
   - Installs source-built binaries into `~/.local/bin`
 
 > [!IMPORTANT]

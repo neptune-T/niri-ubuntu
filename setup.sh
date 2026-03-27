@@ -52,8 +52,11 @@ RUST_MIN_VERSION="1.85.0"
 GO_MIN_VERSION="1.20.0"
 GO_TOOLCHAIN_ROOT="${XDG_DATA_HOME:-$HOME/.local/share}/niri-setup-toolchains"
 LIBDISPLAY_INFO_VERSION="0.3.0"
+LIBDISPLAY_INFO_JAMMY_VERSION="0.2.0"
+NIRI_JAMMY_FALLBACK_VERSION="25.08"
 declare -a CARGO_CMD=(cargo)
 declare -a GO_CMD=(go)
+declare -a NIRI_CARGO_ARGS=()
 
 run_as_root() {
   if [ "${EUID:-$(id -u)}" -eq 0 ]; then
@@ -264,24 +267,60 @@ ensure_modern_go_toolchain() {
 }
 
 have_compatible_libdisplay_info() {
-  pkg-config --exists "libdisplay-info >= 0.1.0" "libdisplay-info < 0.4.0"
+  local max_version="${1:-0.4.0}"
+  pkg-config --exists "libdisplay-info >= 0.1.0" "libdisplay-info < ${max_version}"
+}
+
+pkg_config_version() {
+  local package="$1"
+  pkg-config --modversion "$package" 2>/dev/null || true
+}
+
+remove_local_libdisplay_info() {
+  local pc_file="/usr/local/lib/x86_64-linux-gnu/pkgconfig/libdisplay-info.pc"
+  local lib_files=(
+    /usr/local/lib/x86_64-linux-gnu/libdisplay-info.so
+    /usr/local/lib/x86_64-linux-gnu/libdisplay-info.so.*
+  )
+  local include_dir="/usr/local/include/libdisplay-info"
+
+  if [ -f "$pc_file" ]; then
+    echo "[INFO] removing previously installed /usr/local libdisplay-info..."
+    run_as_root rm -f "$pc_file"
+  fi
+
+  run_as_root rm -f "${lib_files[@]}" 2>/dev/null || true
+  if [ -d "$include_dir" ]; then
+    run_as_root rm -rf "$include_dir"
+  fi
+  run_as_root ldconfig
 }
 
 install_libdisplay_info_from_source() {
-  local archive="libdisplay-info-${LIBDISPLAY_INFO_VERSION}.tar.bz2"
-  local url="https://gitlab.freedesktop.org/emersion/libdisplay-info/-/archive/${LIBDISPLAY_INFO_VERSION}/${archive}"
+  local version="${1:-$LIBDISPLAY_INFO_VERSION}"
+  local max_version="${2:-0.4.0}"
+  local archive="libdisplay-info-${version}.tar.bz2"
+  local url="https://gitlab.freedesktop.org/emersion/libdisplay-info/-/archive/${version}/${archive}"
   local archive_path="$BUILD_ROOT/$archive"
-  local src_dir="$BUILD_ROOT/libdisplay-info-${LIBDISPLAY_INFO_VERSION}"
+  local src_dir="$BUILD_ROOT/libdisplay-info-${version}"
 
-  if have_compatible_libdisplay_info; then
+  local current_version=""
+  current_version=$(pkg_config_version libdisplay-info)
+
+  if have_compatible_libdisplay_info "$max_version" && [ "$current_version" = "$version" ]; then
     prepend_pkg_config_path "/usr/local/lib/x86_64-linux-gnu/pkgconfig"
     prepend_pkg_config_path "/usr/local/lib/pkgconfig"
     prepend_pkg_config_path "/usr/local/share/pkgconfig"
     return 0
   fi
 
-  echo "[INFO] building libdisplay-info ${LIBDISPLAY_INFO_VERSION} from source for niri..."
+  echo "[INFO] building libdisplay-info ${version} from source for niri..."
+  if [ -n "$current_version" ] && [ "$current_version" != "$version" ]; then
+    echo "[WARN] found incompatible libdisplay-info version via pkg-config: $current_version"
+    echo "[WARN] replacing it with version $version"
+  fi
   mkdir -p "$BUILD_ROOT"
+  remove_local_libdisplay_info
   rm -rf "$src_dir" "$archive_path"
 
   if have_cmd curl; then
@@ -303,8 +342,11 @@ install_libdisplay_info_from_source() {
   prepend_pkg_config_path "/usr/local/lib/pkgconfig"
   prepend_pkg_config_path "/usr/local/share/pkgconfig"
 
-  if ! have_compatible_libdisplay_info; then
+  current_version=$(pkg_config_version libdisplay-info)
+  if ! have_compatible_libdisplay_info "$max_version" || [ "$current_version" != "$version" ]; then
     echo "[ERROR] libdisplay-info is still unavailable to pkg-config after installation"
+    echo "[ERROR] expected libdisplay-info version: $version"
+    echo "[ERROR] pkg-config reports version: ${current_version:-missing}"
     exit 1
   fi
 }
@@ -599,7 +641,24 @@ install_cargo_package() {
     return 0
   fi
 
-  "${CARGO_CMD[@]}" install --locked --root "$HOME/.local" --git "$repo_url" "$package_name"
+  if [ "$package_name" = "niri" ] && [ "${#NIRI_CARGO_ARGS[@]}" -gt 0 ]; then
+    "${CARGO_CMD[@]}" install --locked --root "$HOME/.local" --git "$repo_url" "${NIRI_CARGO_ARGS[@]}" "$package_name"
+  else
+    "${CARGO_CMD[@]}" install --locked --root "$HOME/.local" --git "$repo_url" "$package_name"
+  fi
+}
+
+install_niri_jammy_fallback() {
+  if have_cmd niri; then
+    return 0
+  fi
+
+  prepend_pkg_config_path "/usr/local/lib/x86_64-linux-gnu/pkgconfig"
+  prepend_pkg_config_path "/usr/local/lib/pkgconfig"
+  prepend_pkg_config_path "/usr/local/share/pkgconfig"
+
+  echo "[INFO] installing niri ${NIRI_JAMMY_FALLBACK_VERSION} fallback for Ubuntu 22.04..."
+  "${CARGO_CMD[@]}" install --locked --root "$HOME/.local" --git https://github.com/niri-wm/niri.git --tag "v${NIRI_JAMMY_FALLBACK_VERSION}" --no-default-features --features dbus,systemd niri
 }
 
 install_cliphist_from_source() {
@@ -638,9 +697,19 @@ install_fuzzel_from_source() {
 
 build_missing_ubuntu_packages() {
   mkdir -p "$BUILD_ROOT" "$HOME/.local/bin"
+  NIRI_CARGO_ARGS=()
+  local use_jammy_niri_fallback=false
+  local libdisplay_info_version="$LIBDISPLAY_INFO_VERSION"
 
   if ! apt_has_candidate libdisplay-info-dev; then
     echo "[WARN] libdisplay-info-dev is unavailable on Ubuntu ${VERSION_ID:-unknown}; will build libdisplay-info from source for niri."
+  fi
+
+  if [ "${VERSION_ID:-}" = "22.04" ]; then
+    echo "[WARN] Ubuntu 22.04 ships older PipeWire/libspa and libinput stacks than current niri expects."
+    echo "[WARN] using an older niri fallback release on Ubuntu 22.04."
+    use_jammy_niri_fallback=true
+    libdisplay_info_version="$LIBDISPLAY_INFO_JAMMY_VERSION"
   fi
 
   ensure_modern_rust_toolchain
@@ -650,8 +719,13 @@ build_missing_ubuntu_packages() {
   install_cargo_package alacritty alacritty https://github.com/alacritty/alacritty.git
   install_cliphist_from_source
   install_fuzzel_from_source
-  install_libdisplay_info_from_source
-  install_cargo_package niri niri https://github.com/YaLTeR/niri.git
+  if [ "$use_jammy_niri_fallback" = true ]; then
+    install_libdisplay_info_from_source "$libdisplay_info_version" "0.3.0"
+    install_niri_jammy_fallback
+  else
+    install_libdisplay_info_from_source "$libdisplay_info_version" "0.4.0"
+    install_cargo_package niri niri https://github.com/YaLTeR/niri.git
+  fi
 }
 
 main() {
