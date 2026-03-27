@@ -53,10 +53,14 @@ GO_MIN_VERSION="1.20.0"
 GO_TOOLCHAIN_ROOT="${XDG_DATA_HOME:-$HOME/.local/share}/niri-setup-toolchains"
 LIBDISPLAY_INFO_VERSION="0.3.0"
 LIBDISPLAY_INFO_JAMMY_VERSION="0.2.0"
-NIRI_JAMMY_FALLBACK_VERSION="25.08"
+NIRI_JAMMY_FALLBACK_VERSION="25.02"
 declare -a CARGO_CMD=(cargo)
 declare -a GO_CMD=(go)
 declare -a NIRI_CARGO_ARGS=()
+
+if [ -f /etc/os-release ]; then
+  . /etc/os-release
+fi
 
 run_as_root() {
   if [ "${EUID:-$(id -u)}" -eq 0 ]; then
@@ -441,9 +445,46 @@ replace_placeholders() {
   done
 }
 
+build_niri_config() {
+  local base_dir="$1"
+  local mode="${2:-modular}"
+
+  if [ "$mode" != "flat" ]; then
+    return 0
+  fi
+
+  cat >"$base_dir/niri/config.kdl" <<'EOF'
+// This config is in the KDL format: https://kdl.dev
+// Check the wiki for a full description of the configuration:
+// https://github.com/YaLTeR/niri/wiki/Configuration:-Introduction
+
+EOF
+
+  local file
+  for file in \
+    "$base_dir/niri/input.kdl" \
+    "$base_dir/niri/outputs.kdl" \
+    "$base_dir/niri/layout.kdl" \
+    "$base_dir/niri/spawn-at-startup.kdl" \
+    "$base_dir/niri/wallpapers.kdl" \
+    "$base_dir/niri/recent-windows.kdl" \
+    "$base_dir/niri/rules.kdl" \
+    "$base_dir/niri/misc.kdl" \
+    "$base_dir/niri/binds.kdl"; do
+    printf '\n' >>"$base_dir/niri/config.kdl"
+    cat "$file" >>"$base_dir/niri/config.kdl"
+    printf '\n' >>"$base_dir/niri/config.kdl"
+  done
+}
+
 deploy_files() {
   local stage_dir
   stage_dir=$(mktemp -d)
+  local niri_config_mode="modular"
+
+  if [ "$(detect_package_manager)" = "apt" ] && [ "${VERSION_ID:-}" = "22.04" ]; then
+    niri_config_mode="flat"
+  fi
 
   local entries=(
     alacritty
@@ -463,6 +504,7 @@ deploy_files() {
   done
 
   replace_placeholders "$stage_dir"
+  build_niri_config "$stage_dir" "$niri_config_mode"
 
   mkdir -p "$(dirname "$INSTALL_ROOT")"
   if [ -e "$INSTALL_ROOT" ] || [ -L "$INSTALL_ROOT" ]; then
@@ -658,7 +700,36 @@ install_niri_jammy_fallback() {
   prepend_pkg_config_path "/usr/local/share/pkgconfig"
 
   echo "[INFO] installing niri ${NIRI_JAMMY_FALLBACK_VERSION} fallback for Ubuntu 22.04..."
-  "${CARGO_CMD[@]}" install --locked --root "$HOME/.local" --git https://github.com/niri-wm/niri.git --tag "v${NIRI_JAMMY_FALLBACK_VERSION}" --no-default-features --features dbus,systemd niri
+  local archive="niri-v${NIRI_JAMMY_FALLBACK_VERSION}.tar.gz"
+  local url="https://github.com/niri-wm/niri/archive/refs/tags/v${NIRI_JAMMY_FALLBACK_VERSION}.tar.gz"
+  local archive_path="$BUILD_ROOT/$archive"
+  local src_dir="$BUILD_ROOT/niri-${NIRI_JAMMY_FALLBACK_VERSION}"
+  local extracted_dir="$BUILD_ROOT/niri-${NIRI_JAMMY_FALLBACK_VERSION}-src"
+
+  rm -rf "$src_dir" "$extracted_dir" "$archive_path"
+
+  if have_cmd curl; then
+    curl -fL "$url" -o "$archive_path"
+  elif have_cmd wget; then
+    wget -O "$archive_path" "$url"
+  else
+    echo "[ERROR] downloading niri fallback requires curl or wget"
+    exit 1
+  fi
+
+  mkdir -p "$extracted_dir"
+  tar -C "$extracted_dir" -xzf "$archive_path"
+  mv "$extracted_dir"/niri-* "$src_dir"
+  rmdir "$extracted_dir"
+
+  if [ -f "$src_dir/src/input/mod.rs" ]; then
+    sed -i 's/let _ = device.config_dwtp_set_enabled(c\.dwtp);/\/\/ Ubuntu 22.04 libinput is too old for dwtp; skip this call./' "$src_dir/src/input/mod.rs"
+  fi
+
+  (
+    cd "$src_dir"
+    "${CARGO_CMD[@]}" install --locked --root "$HOME/.local" --path . --no-default-features --features dbus,systemd
+  )
 }
 
 install_cliphist_from_source() {
