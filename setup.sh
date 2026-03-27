@@ -437,12 +437,27 @@ replace_placeholders() {
     "$base_dir/waybar/config"
     "$base_dir/waybar/modules.jsonc"
     "$base_dir/wlogout/layout"
+    "$base_dir/resources/niri.desktop"
   )
 
   local file
   for file in "${files[@]}"; do
     sed -i "s|\$NIRICONF|$INSTALL_ROOT|g" "$file"
   done
+}
+
+install_session_entry() {
+  local session_source="$INSTALL_ROOT/resources/niri.desktop"
+  local user_session_dir="${XDG_DATA_HOME:-$HOME/.local/share}/wayland-sessions"
+  local system_session_dir="/usr/share/wayland-sessions"
+
+  mkdir -p "$user_session_dir"
+  cp "$session_source" "$user_session_dir/niri.desktop"
+
+  if [ -d "$system_session_dir" ]; then
+    run_as_root mkdir -p "$system_session_dir"
+    run_as_root cp "$session_source" "$system_session_dir/niri.desktop"
+  fi
 }
 
 build_niri_config() {
@@ -552,6 +567,7 @@ deploy_files() {
     fuzzel
     niri
     niriswitcher
+    resources
     scripts
     wallpapers
     waybar
@@ -588,6 +604,8 @@ deploy_files() {
   for entry in "${config_dirs[@]}"; do
     link_config_dir "$INSTALL_ROOT/$entry" "$HOME/.config/$entry"
   done
+
+  install_session_entry
 }
 
 install_arch_packages() {

@@ -72,6 +72,7 @@ The installer now matches the current codebase behavior:
 - On Ubuntu / Debian, optionally builds missing tools from source into `~/.local/bin`
 - Deploys this repo into `~/.local/share/niri-setup`
 - Symlinks managed config directories into `~/.config`
+- Installs a `niri` Wayland session entry for the login screen
 - Backs up existing managed config paths before replacing them
 
 ### Supported Flows
@@ -95,6 +96,18 @@ The installer now matches the current codebase behavior:
 
 > [!NOTE]
 > On Ubuntu 22.04, `setup.sh` now rewrites the repo's modular `niri` config into a single flat `config.kdl` during deployment, because the pinned `niri v25.02` fallback does not support top-level `include` nodes. If you installed an earlier revision of this repo, rerun `./setup.sh` or `./setup.sh --skip-install` once to redeploy the compatible config.
+
+### Logging Into `niri`
+
+After installation, log out of your current desktop session. On the login screen, click the session selector (usually a gear icon), choose `Niri`, then sign in again.
+
+If `Niri` does not appear in the session list, rerun:
+
+```bash
+./setup.sh --skip-install
+```
+
+This redeploys config files and refreshes the installed Wayland session entry.
 
 ### Installer Options
 
