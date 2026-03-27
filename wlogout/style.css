@@ -1,20 +1,19 @@
 window {
-  font-family: Ubuntu Mono;
-  font-size: 16pt;
-  color: #d8dadd; /* text */
-  background-color: rgba(24, 27, 32, 1);
+  font-family: Inter, "Noto Sans CJK TC", sans-serif;
+  font-size: 14pt;
+  color: #f3f6f8;
+  background-color: rgba(10, 14, 18, 0.60);
 }
 
 button {
   background-repeat: no-repeat;
   background-position: center;
-  background-size: 20%;
-  background-color: transparent;
-  animation: gradient_f 20s ease-in infinite;
-  transition: all 0.3s ease-in;
-  box-shadow: 0 0 10px 2px transparent;
-  border-radius: 36px;
-  margin: 10px;
+  background-size: 16%;
+  background-color: rgba(255, 255, 255, 0.05);
+  transition: all 0.2s ease-in;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.10);
+  border-radius: 30px;
+  margin: 14px;
 }
 
 button:focus {
@@ -23,12 +22,11 @@ button:focus {
 }
 
 button:hover {
-  background-size: 50%;
-  box-shadow: 0 0 10px 3px rgba(0, 0, 0, 0.4);
-  background-color: #b7d4ed;
+  background-size: 28%;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+  background-color: rgba(214, 226, 239, 0.18);
   color: transparent;
-  transition: all 0.3s cubic-bezier(0.55, 0, 0.28, 1.682),
-    box-shadow 0.5s ease-in;
+  transition: all 0.2s ease;
 }
 
 #shutdown {

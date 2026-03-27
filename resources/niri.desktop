@@ -1,6 +1,11 @@
 [Desktop Entry]
 Name=Niri
 Comment=Scrollable-tiling Wayland compositor
-Exec=/home/plote/.local/share/niri-setup/scripts/start-niri-session.sh
+Exec=dbus-run-session /home/plote/.local/share/niri-setup/scripts/start-niri-session.sh
 Type=Application
 DesktopNames=niri
+TryExec=/home/plote/.local/share/niri-setup/scripts/start-niri-session.sh
+X-GDM-SessionRegisters=true
+X-Ubuntu-Gettext-Domain=gdm3
+NoDisplay=false
+XDG_SESSION_TYPE=wayland

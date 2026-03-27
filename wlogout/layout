@@ -1,25 +1,25 @@
 {
     "label" : "shutdown",
     "action" : "systemctl poweroff",
-    "text" : "shutdown"
+    "text" : "Power Off"
 }
 {
     "label" : "reboot",
     "action" : "systemctl reboot",
-    "text" : "reboot"
+    "text" : "Restart"
 }
 {
     "label" : "logout",
     "action" : "pkill niri",
-    "text" : "logout"
+    "text" : "Log Out"
 }
 {
     "label" : "suspend",
     "action" : "systemctl suspend",
-    "text" : "suspend"
+    "text" : "Sleep"
 }
 {
     "label" : "lock",
     "action" : "$NIRICONF/scripts/swaylock.sh",
-    "text" : "lock"
+    "text" : "Lock"
 }

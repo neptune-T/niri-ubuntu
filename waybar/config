@@ -1,10 +1,11 @@
 {
   "layer": "top",
-  "margin-top": 0,
+  "position": "top",
+  "margin-top": 10,
   "margin-bottom": 0,
-  "margin-left": 0,
-  "margin-right": 0,
-  "spacing": 0,
+  "margin-left": 14,
+  "margin-right": 14,
+  "spacing": 8,
   "include": [
     "$NIRICONF/waybar/modules.jsonc"
   ],
@@ -16,13 +17,14 @@
     "niri/window"
   ],
   "modules-right": [
-    "custom/updates",
-    "backlight",
+    "group/status",
+    "group/system",
+    "group/time"
+  ]
+}
     "pulseaudio",
     "battery",
     "network",
-    "cpu",
-    "memory",
     "power-profiles-daemon",
     "custom/swayidle",
     "clock"

@@ -2,8 +2,13 @@ binds {
     // Applications
     Mod+Return      { spawn-sh "$NIRICONF/scripts/open-terminal.sh default"; }
     Mod+Ctrl+Return { spawn-sh "$NIRICONF/scripts/menu.sh launcher --config $NIRICONF/fuzzel/fuzzel.ini"; }
+    Mod+V           { spawn-sh "$NIRICONF/scripts/open-app.sh vscode"; }
     Mod+B           { spawn-sh "firefox"; }
+    Mod+Shift+G     { spawn-sh "$NIRICONF/scripts/open-app.sh google"; }
+    Mod+G           { spawn-sh "$NIRICONF/scripts/open-app.sh google"; }
     Mod+E           { spawn-sh "nautilus"; }
+    Mod+Shift+W     { spawn-sh "$NIRICONF/scripts/open-app.sh wechat"; }
+    Mod+Slash       { spawn-sh "$NIRICONF/scripts/menu.sh launcher --config $NIRICONF/fuzzel/fuzzel.ini"; }
     Mod+L           { spawn-sh "$NIRICONF/scripts/swaylock.sh"; }
     Mod+C           { spawn-sh "cliphist list | $NIRICONF/scripts/menu.sh dmenu --config $NIRICONF/fuzzel/clipboard.ini | cliphist decode | wl-copy"; }
     Mod+I           { spawn-sh "$NIRICONF/scripts/change-idle-time.sh"; }
@@ -71,4 +76,9 @@ binds {
     Print       { screenshot; }
     Ctrl+Print  { screenshot-window; }
     Shift+Print { screenshot-screen; }
+
+    // Input method
+    Ctrl+Shift+Space { spawn-sh "$NIRICONF/scripts/toggle-input-method.sh"; }
+    Ctrl+Shift+Return { spawn-sh "$NIRICONF/scripts/toggle-input-method.sh"; }
+    Mod+Space { spawn-sh "$NIRICONF/scripts/toggle-input-method.sh"; }
 }

@@ -446,6 +446,40 @@ replace_placeholders() {
   done
 }
 
+sync_user_wallpapers() {
+  local base_dir="$1"
+  local preferred_dir="${NIRI_WALLPAPER_DIR:-$HOME/图片/wallpaper}"
+  local fallback_dir="$HOME/Pictures/wallpapers"
+  local source_dir=""
+
+  if [ -d "$preferred_dir" ]; then
+    source_dir="$preferred_dir"
+  elif [ -d "$fallback_dir" ]; then
+    source_dir="$fallback_dir"
+  else
+    return 0
+  fi
+
+  rm -f "$base_dir/wallpapers"/workspace.* "$base_dir/wallpapers"/backdrop.*
+  find "$base_dir/wallpapers" -mindepth 1 -maxdepth 1 -type f -delete
+
+  cp -a "$source_dir"/. "$base_dir/wallpapers"/
+
+  local first_image=""
+  first_image=$(find "$base_dir/wallpapers" -maxdepth 1 -type f | sort | grep -E '\.(jpg|jpeg|png|webp)$' | head -n 1 || true)
+  if [ -z "$first_image" ]; then
+    return 0
+  fi
+
+  local extension="${first_image##*.}"
+  cp -f "$first_image" "$base_dir/wallpapers/workspace.$extension"
+  if have_cmd magick; then
+    magick "$base_dir/wallpapers/workspace.$extension" -scale 10% -blur 0x2.5 -resize 1000% "$base_dir/wallpapers/backdrop.$extension" >/dev/null 2>&1 || true
+  else
+    cp -f "$base_dir/wallpapers/workspace.$extension" "$base_dir/wallpapers/backdrop.$extension"
+  fi
+}
+
 install_session_entry() {
   local session_source="$INSTALL_ROOT/resources/niri.desktop"
   local user_session_dir="${XDG_DATA_HOME:-$HOME/.local/share}/wayland-sessions"
@@ -579,6 +613,7 @@ deploy_files() {
     cp -a "$SCRIPT_DIR/$entry" "$stage_dir/"
   done
 
+  sync_user_wallpapers "$stage_dir"
   replace_placeholders "$stage_dir"
   build_niri_config "$stage_dir" "$niri_config_mode"
   if [ "$niri_config_mode" = "flat" ]; then

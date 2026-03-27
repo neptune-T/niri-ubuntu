@@ -1,4 +1,25 @@
 {
+  "group/status": {
+    "orientation": "inherit",
+    "modules": [
+      "network",
+      "pulseaudio",
+      "battery"
+    ]
+  },
+  "group/system": {
+    "orientation": "inherit",
+    "modules": [
+      "power-profiles-daemon",
+      "custom/swayidle"
+    ]
+  },
+  "group/time": {
+    "orientation": "inherit",
+    "modules": [
+      "clock"
+    ]
+  },
   "niri/workspaces": {
     "disable-click": true,
     "format": "{icon}",
@@ -8,12 +29,12 @@
     },
   },
   "custom/media": {
-    "format": "{}",
+    "format": "󰎈  {}",
     "tooltip": true,
     "tooltip-format": "{}",
     "escape": true,
     "return-type": "json",
-    "max-length": 50,
+    "max-length": 36,
     "on-click": "playerctl play-pause",
     "on-click-right": "playerctl stop",
     "on-scroll-up": "playerctl previous",
@@ -23,25 +44,13 @@
   "niri/window": {
     "icon": true,
     "icon-size": 18,
-    "max-length": 70,
-  },
-  "custom/updates": {
-    "format": "  {}",
-    "escape": true,
-    "return-type": "json",
-    "exec": "$NIRICONF/waybar/modules/count-updates.sh",
-    "restart-interval": 60,
-    "on-click": "$NIRICONF/scripts/open-terminal.sh float Updater $NIRICONF/waybar/modules/install-updates.sh",
-  },
-  "backlight": {
-    "device": "intel_backlight",
-    "format": "󰃟  {percent}%",
+    "max-length": 34,
   },
   "pulseaudio": {
-    "format": "{icon}",
+    "format": "{icon}  {volume}%",
     "format-bluetooth": "{icon}",
     "tooltip-format": "{desc} - {volume} %",
-    "format-muted": " ",
+    "format-muted": "  mute",
     "on-click": "$NIRICONF/scripts/open-audio-control.sh",
     "format-icons": {
       "headphone": " ",
@@ -56,29 +65,21 @@
       "critical": 15,
     },
     "interval": 10,
-    "format": "{icon} {capacity}%",
-    "format-charging": "󰂄 {capacity}%",
-    "format-plugged": "󰂄 {capacity}%",
+    "format": "{icon}  {capacity}%",
+    "format-charging": "󰂄  {capacity}%",
+    "format-plugged": "󰂄  {capacity}%",
     "format-icons": ["󰁻", "󰁽", "󰁿", "󰂁", "󰁹"],
   },
   "network": {
-    "format": "{ifname}",
+    "format": "󰖩  net",
     "format-wifi": "  {essid}",
-    "format-ethernet": "󰈀  {ifname}",
-    "format-disconnected": "Disconnected",
+    "format-ethernet": "󰈀  wired",
+    "format-disconnected": "󰖪  offline",
     "tooltip-format-wifi": "  {ifname} @ {essid}\nIP: {ipaddr}\nStrength: {signalStrength}%\nFreq: {frequency}MHz\nUp: {bandwidthUpBits} Down: {bandwidthDownBits}",
     "tooltip-format-ethernet": "󰈀  {ifname}\nIP: {ipaddr}\n up: {bandwidthUpBits} down: {bandwidthDownBits}",
     "tooltip-format-disconnected": "Disconnected",
-    "max-length": 50,
+    "max-length": 16,
     "on-click": "$NIRICONF/scripts/open-terminal.sh float nmtui nmtui connect",
-  },
-  "cpu": {
-    "format": "  {usage}%",
-    "interval": 10,
-  },
-  "memory": {
-    "format": "  {}%",
-    "interval": 10,
   },
   "power-profiles-daemon": {
     "format": "{icon}",
@@ -99,7 +100,7 @@
     "restart-interval": 1,
   },
   "clock": {
-    "format": "{:%b %d %H:%M}",
+    "format": "󰃭  {:%a  %m-%d  %H:%M}",
     "tooltip-format": "<tt>{calendar}</tt>",
   },
 }

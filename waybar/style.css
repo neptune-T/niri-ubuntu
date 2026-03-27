@@ -1,110 +1,176 @@
-/*base background color*/
-@define-color bg_main rgba(25, 25, 25, 0.65);
-@define-color bg_main_tooltip rgba(0, 0, 0, 0.7);
-
-/*base background color of selections */
-@define-color bg_hover rgba(200, 200, 200, 0.3);
-/*base background color of active elements */
-@define-color bg_active rgba(100, 100, 100, 0.5);
-
-/*base border color*/
-@define-color border_main rgba(255, 255, 255, 0.2);
-
-/*text color for entries, views and content in general */
-@define-color content_main white;
-/*text color for entries that are unselected */
-@define-color content_inactive rgba(255, 255, 255, 0.25);
+@define-color bg_main rgba(17, 21, 27, 0.58);
+@define-color bg_main_tooltip rgba(14, 17, 22, 0.94);
+@define-color bg_hover rgba(255, 255, 255, 0.07);
+@define-color bg_active rgba(214, 226, 239, 0.16);
+@define-color border_main rgba(230, 236, 242, 0.15);
+@define-color content_main #f3f6f8;
+@define-color content_soft rgba(243, 246, 248, 0.72);
+@define-color accent rgba(214, 226, 239, 0.96);
+@define-color accent_soft rgba(214, 226, 239, 0.14);
 
 * {
   text-shadow: none;
   box-shadow: none;
   border: none;
   border-radius: 0;
-  font-family: "Ubuntu Mono Nerd Font", "Noto Sans Mono CJK TC";
-  font-weight: 300;
-  font-size: 16px;
-  padding-top: 1px;
-  padding-bottom: 1px;
+  font-family: "SF Pro Display", "Inter", "Ubuntu Sans", "Noto Sans CJK TC", sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  min-height: 0;
 }
 
 window#waybar {
   background: @bg_main;
-  border-top: 1px solid @border_main;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 20px;
   color: @content_main;
+  transition: background-color 0.2s ease;
+  min-height: 42px;
 }
 
 tooltip {
   background: @bg_main_tooltip;
-  border-radius: 5px;
+  border-radius: 14px;
   border-width: 1px;
   border-style: solid;
   border-color: @border_main;
+  padding: 8px 10px;
 }
+
 tooltip label {
   color: @content_main;
+  font-size: 13px;
 }
 
 #workspaces {
   color: transparent;
-  margin-right: 4px;
-  margin-left: 14px;
+  margin: 0 8px 0 12px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
 }
+
 #workspaces button {
-  padding: 3px 3px;
-  transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1);
+  padding: 0 6px;
+  margin: 7px 2px;
+  border-radius: 999px;
+  transition: all 0.18s ease;
+  color: @content_soft;
 }
+
+#workspaces button:hover {
+  background: @bg_hover;
+  color: @content_main;
+}
+
 #workspaces button.active {
-  color: @content_main;
+  background: @accent_soft;
+  color: @accent;
 }
+
 #workspaces button.focused {
-  color: @content_main;
+  background: @accent_soft;
+  color: @accent;
 }
+
 #workspaces button.urgent {
-  background: rgba(255, 87, 51, 0.5);
-  color: @warning_color;
+  background: rgba(255, 107, 107, 0.18);
+  color: #ff8f8f;
 }
 
 #custom-media,
-#custom-updates,
-#backlight,
 #pulseaudio,
 #battery,
 #network,
-#custom-weather,
-#cpu,
-#memory,
 #power-profiles-daemon,
 #custom-swayidle,
 #clock {
-  margin: 0 10px 0 0;
-  padding: 2px 2px;
+  margin: 7px 8px 7px 0;
+  padding: 6px 13px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  color: @content_main;
+}
+
+#group-status,
+#group-system,
+#group-time {
+  margin: 7px 8px 7px 0;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+#group-status > * ,
+#group-system > *,
+#group-time > * {
+  margin: 0;
+  background: transparent;
+}
+
+#pulseaudio,
+#battery,
+#network,
+#power-profiles-daemon,
+#custom-swayidle,
+#clock {
+  color: @content_soft;
 }
 
 #power-profiles-daemon {
-  margin: 0 16px 0 0;
-  font-size: 19px;
+  margin-right: 12px;
+  font-size: 17px;
 }
 
 #custom-swayidle {
-  margin: 0px 8px 0 0;
+  color: @content_soft;
 }
 
 #battery.good {
-  color: #228b22;
+  color: #b8e4c6;
 }
 
 #battery.warning {
-  color: #fad104;
+  color: #f1d39a;
 }
 
 #battery.critical {
-  color: #ee2e24;
+  color: #f2a6a6;
 }
 
 #battery.charging {
-  color: #ffffff;
+  color: #c7e7bb;
 }
 
 #custom-media {
-  color: #8968cd;
+  color: #d7dff0;
+  background: rgba(215, 223, 240, 0.08);
+}
+
+#network {
+  max-width: 180px;
+}
+
+#clock {
+  margin-right: 14px;
+  color: @content_main;
+}
+
+#pulseaudio:hover,
+#battery:hover,
+#network:hover,
+#power-profiles-daemon:hover,
+#custom-swayidle:hover,
+#clock:hover,
+#custom-media:hover {
+  background: @bg_hover;
+}
+
+#window {
+  padding: 0 20px;
+  margin: 7px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: @content_soft;
 }

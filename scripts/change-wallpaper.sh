@@ -4,7 +4,11 @@ set -euo pipefail
 source "$(dirname "$(realpath "$0")")/common.sh"
 ensure_niriconf
 
-wallpaper_dir="$HOME/Pictures/wallpapers"
+wallpaper_dir="${NIRI_WALLPAPER_DIR:-$HOME/图片/wallpaper}"
+
+if [ ! -d "$wallpaper_dir" ] && [ -d "$HOME/Pictures/wallpapers" ]; then
+  wallpaper_dir="$HOME/Pictures/wallpapers"
+fi
 export GUM_CHOOSE_HEADER_FOREGROUND="#d8dadd"
 export GUM_CHOOSE_SELECTED_FOREGROUND="#758A9B"
 export GUM_CHOOSE_CURSOR_FOREGROUND="#758A9B"
@@ -35,7 +39,17 @@ if [ -z "$images" ]; then
 fi
 
 image="$wallpaper_dir/$(echo "$images" | gum choose --header 'Choose your wallpaper: ')"
-mode=$(echo -e "stretch\nfill\nfit\ncenter\ntile" | gum choose --header "Choose wallpaper mode: ")
+
+dimensions=$(magick identify -format '%w %h' "$image" 2>/dev/null || true)
+width=$(printf '%s\n' "$dimensions" | awk '{print $1}')
+height=$(printf '%s\n' "$dimensions" | awk '{print $2}')
+
+default_mode="fill"
+if [ -n "$width" ] && [ -n "$height" ] && [ "$height" -gt "$width" ]; then
+  default_mode="fit"
+fi
+
+mode="$default_mode"
 
 if [ -z "$image" ] || [ -z "$mode" ]; then
   exit 1
@@ -45,6 +59,7 @@ workspace_target="$NIRICONF/wallpapers/workspace.${image##*.}"
 backdrop_target="$NIRICONF/wallpapers/backdrop.${image##*.}"
 
 echo "[INFO] New wallpaper: $image"
+echo "[INFO] Auto-selected wallpaper mode: $mode"
 echo "[INFO] Copying new wallpaper to $NIRICONF..."
 cp -f "$image" "$workspace_target"
 
@@ -56,7 +71,7 @@ pkill swaybg || true
 nohup sh -c "$workspace_cmd" >/dev/null 2>&1 &
 
 echo "[INFO] Creating new overview backdrop..."
-magick "$workspace_target" -scale 10% -blur 0x2.5 -resize 1000% "$backdrop_target"
+magick "$workspace_target" -resize '2000x2000>' -scale 10% -blur 0x2.5 -resize 1000% "$backdrop_target"
 backdrop_cmd="swww-daemon & swww img $backdrop_target"
 escaped_backdrop_cmd=${backdrop_cmd//&/\\&}
 if ! pgrep -x swww-daemon >/dev/null 2>&1; then

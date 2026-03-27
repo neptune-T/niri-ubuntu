@@ -6,13 +6,13 @@
     follow = none
 
     ### Geometry ###
-    width = 300
+    width = 380
     # The height of a single notification, excluding the frame.
     # dynamic height from 0 to 300
     height = (0, 300)
     origin = top-right
     # Offset from the origin
-    offset = (25, 25)
+    offset = (18, 18)
     scale = 0
     notification_limit = 5
     # Draw a line of "separator_height" pixel height between two
@@ -21,13 +21,13 @@
     # If gap_size is greater than 0, this setting will be ignored.
     separator_height = 2
     # Padding between text and separator.
-    padding = 8
+    padding = 16
     # Horizontal padding.
-    horizontal_padding = 8
+    horizontal_padding = 16
     # Padding between text and icon.
     text_icon_padding = 0
-    frame_width = 2
-    corner_radius = 12
+    frame_width = 1
+    corner_radius = 22
     corners = all
     gap_size = 0
     separator_color = frame
@@ -35,21 +35,21 @@
 
     ### Progress bar ###
     progress_bar = true
-    progress_bar_height = 10
+    progress_bar_height = 8
     progress_bar_frame_width = 1
     progress_bar_min_width = 150
     progress_bar_max_width = 300
-    progress_bar_corner_radius = 0
+    progress_bar_corner_radius = 999
     progress_bar_corners = all
-    icon_corner_radius = 0
+    icon_corner_radius = 12
     icon_corners = all
     indicate_hidden = yes
 
     ### Text ###
-    font = Monospace 10
+    font = Inter 11
     line_height = 0
     markup = full
-    format = "<b>%s</b>\n%b"
+    format = "<b>%s</b>\n<span size='smaller'>%b</span>"
     alignment = left
     vertical_alignment = center
     # Show age of message if message is older than show_age_threshold seconds.
@@ -73,9 +73,9 @@
     # Scale small icons up to this size, set to 0 to disable. Helpful
     # for e.g. small files or high-dpi screens. In case of conflict,
     # max_icon_size takes precedence over this.
-    min_icon_size = 64
+    min_icon_size = 48
     # Scale larger icons down to this size, set to 0 to disable
-    max_icon_size = 64
+    max_icon_size = 48
 
     ### History ###
     sticky_history = yes
@@ -109,26 +109,26 @@
 [urgency_low]
     # IMPORTANT: colors have to be defined in quotation marks.
     # Otherwise the "#" and following would be interpreted as a comment.
-    background = "#0b0b0ccc"
-    foreground = "#d8dadd"
-    frame_color = "#61768fcc"
+    background = "#11151add"
+    foreground = "#f3f6f8"
+    frame_color = "#d6e2ee55"
     timeout = 10
     # Icon for notifications with low urgency
     default_icon = dialog-information
 
 [urgency_normal]
-    background = "#0b0b0ccc"
-    foreground = "#d8dadd"
-    frame_color = "#b7d4edcc"
+    background = "#11151ae8"
+    foreground = "#f3f6f8"
+    frame_color = "#d6e2ee88"
     timeout = 10
     override_pause_level = 30
     # Icon for notifications with normal urgency
     default_icon = dialog-information
 
 [urgency_critical]
-    background = "#0b0b0ccc"
-    foreground = "#d8dadd"
-    frame_color = "#ff5555cc"
+    background = "#11151ae8"
+    foreground = "#f3f6f8"
+    frame_color = "#ff8f8faa"
     timeout = 0
     override_pause_level = 60
     # Icon for notifications with critical urgency

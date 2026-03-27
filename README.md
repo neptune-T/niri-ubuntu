@@ -49,6 +49,9 @@ These are not fully managed by this repo, but the setup looks best with:
 - Wallpaper picker that also regenerates the blurred overview backdrop
 - Cross-distro update checker for both `pacman`- and `apt`-based systems
 - Safer runtime fallbacks for audio control, terminal launching, Polkit agent startup, and Swaylock effects
+- Wallpaper picker defaults to `~/图片/wallpaper` on your current setup, with `~/Pictures/wallpapers` as fallback
+- During deploy, the managed `wallpapers/` directory is refreshed from your wallpaper folder and the old bundled wallpaper files are replaced
+- The wallpaper picker now auto-selects `fit` for portrait images and `fill` for landscape images
 
 ## Installation
 
@@ -108,6 +111,21 @@ If `Niri` does not appear in the session list, rerun:
 ```
 
 This redeploys config files and refreshes the installed Wayland session entry.
+
+### TTY Autostart Option
+
+If GDM keeps falling back to Ubuntu instead of entering `niri`, you can bypass it and make `tty1` auto-login directly into `niri`.
+
+The repo includes:
+
+- `scripts/auto-start-niri-tty.sh`
+
+This helper only starts `niri` when:
+
+- you are on `tty1`
+- there is no existing `DISPLAY`
+- there is no existing `WAYLAND_DISPLAY`
+- `niri` is not already running
 
 ### Installer Options
 
@@ -180,8 +198,13 @@ Programs intentionally not managed by this repo include:
 | :---------------------------------------------------- | :------------------------ |
 | <kbd>Super</kbd> + <kbd>Enter</kbd>                   | Open terminal             |
 | <kbd>Super</kbd> + <kbd>Ctrl</kbd> + <kbd>Enter</kbd> | Open launcher             |
+| <kbd>Super</kbd> + <kbd>/</kbd>                       | Open launcher             |
+| <kbd>Super</kbd> + <kbd>V</kbd>                       | Open VS Code / Cursor     |
 | <kbd>Super</kbd> + <kbd>B</kbd>                       | Open Firefox              |
+| <kbd>Super</kbd> + <kbd>G</kbd>                       | Open Google Chrome        |
+| <kbd>Super</kbd> + <kbd>Shift</kbd> + <kbd>G</kbd>    | Open Google Chrome        |
 | <kbd>Super</kbd> + <kbd>E</kbd>                       | Open Nautilus             |
+| <kbd>Super</kbd> + <kbd>Shift</kbd> + <kbd>W</kbd>    | Open WeChat / LinuxQQ     |
 | <kbd>Super</kbd> + <kbd>L</kbd>                       | Lock screen               |
 | <kbd>Super</kbd> + <kbd>C</kbd>                       | Open clipboard menu       |
 | <kbd>Super</kbd> + <kbd>I</kbd>                       | Change idle timeout       |
@@ -190,6 +213,9 @@ Programs intentionally not managed by this repo include:
 | <kbd>Super</kbd> + <kbd>W</kbd>                       | Toggle Waybar             |
 | <kbd>Super</kbd> + <kbd>Ctrl</kbd> + <kbd>W</kbd>     | Open wallpaper selector   |
 | <kbd>Super</kbd> + <kbd>Backspace</kbd>               | Open logout menu          |
+| <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Space</kbd> | Toggle input method       |
+| <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Enter</kbd> | Toggle input method       |
+| <kbd>Super</kbd> + <kbd>Space</kbd>                   | Toggle input method       |
 
 ### Hardware / Media
 
