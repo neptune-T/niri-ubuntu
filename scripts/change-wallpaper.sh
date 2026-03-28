@@ -14,9 +14,14 @@ export GUM_CHOOSE_SELECTED_FOREGROUND="#758A9B"
 export GUM_CHOOSE_CURSOR_FOREGROUND="#758A9B"
 
 missing=()
-for dep in gum imagemagick swaybg swww; do
+for dep in gum swaybg swww; do
   have_cmd "$dep" || missing+=("$dep")
 done
+
+img_cmd="$(first_cmd magick convert || true)"
+if [ -z "$img_cmd" ]; then
+  missing+=("ImageMagick (magick/convert)")
+fi
 
 if ! first_cmd fd fdfind >/dev/null 2>&1; then
   missing+=("fd/fdfind")
@@ -40,7 +45,11 @@ fi
 
 image="$wallpaper_dir/$(echo "$images" | gum choose --header 'Choose your wallpaper: ')"
 
-dimensions=$(magick identify -format '%w %h' "$image" 2>/dev/null || true)
+if [ "$img_cmd" = "magick" ]; then
+  dimensions=$(magick identify -format '%w %h' "$image" 2>/dev/null || true)
+else
+  dimensions=$(identify -format '%w %h' "$image" 2>/dev/null || true)
+fi
 width=$(printf '%s\n' "$dimensions" | awk '{print $1}')
 height=$(printf '%s\n' "$dimensions" | awk '{print $2}')
 
@@ -63,7 +72,11 @@ echo "[INFO] Auto-selected wallpaper mode: $mode"
 echo "[INFO] Copying new wallpaper to $NIRICONF..."
 cp -f "$image" "$workspace_target"
 
-canvas_color=$(magick "$workspace_target" -crop x1+0+0 -resize 1x1 txt:- | grep -o '#[0-9A-Fa-f]\{6\}' | head -n 1)
+if [ "$img_cmd" = "magick" ]; then
+  canvas_color=$(magick "$workspace_target" -crop x1+0+0 -resize 1x1 txt:- | grep -o '#[0-9A-Fa-f]\{6\}' | head -n 1)
+else
+  canvas_color=$(convert "$workspace_target" -crop x1+0+0 -resize 1x1 txt:- | grep -o '#[0-9A-Fa-f]\{6\}' | head -n 1)
+fi
 workspace_cmd="swaybg -i $workspace_target -m $mode -c '$canvas_color'"
 escaped_workspace_cmd=${workspace_cmd//&/\\&}
 sed -i "s|^spawn-sh-at-startup \"swaybg.*|spawn-sh-at-startup \"$escaped_workspace_cmd\"|" "$NIRICONF/niri/wallpapers.kdl"
@@ -71,7 +84,11 @@ pkill swaybg || true
 nohup sh -c "$workspace_cmd" >/dev/null 2>&1 &
 
 echo "[INFO] Creating new overview backdrop..."
-magick "$workspace_target" -resize '2000x2000>' -scale 10% -blur 0x2.5 -resize 1000% "$backdrop_target"
+if [ "$img_cmd" = "magick" ]; then
+  magick "$workspace_target" -resize '2000x2000>' -scale 10% -blur 0x2.5 -resize 1000% "$backdrop_target"
+else
+  convert "$workspace_target" -resize '2000x2000>' -scale 10% -blur 0x2.5 -resize 1000% "$backdrop_target"
+fi
 backdrop_cmd="swww-daemon & swww img $backdrop_target"
 escaped_backdrop_cmd=${backdrop_cmd//&/\\&}
 if ! pgrep -x swww-daemon >/dev/null 2>&1; then

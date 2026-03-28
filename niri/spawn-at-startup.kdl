@@ -1,6 +1,7 @@
 // Spawn processes at niri startup.
 // https://github.com/YaLTeR/niri/wiki/Configuration:-Miscellaneous#spawn-sh-at-startup
 spawn-sh-at-startup "command -v udiskie >/dev/null 2>&1 && udiskie"
+spawn-sh-at-startup "$NIRICONF/scripts/start-clash.sh"
 spawn-sh-at-startup "$NIRICONF/scripts/start-polkit-agent.sh"
 spawn-sh-at-startup "wl-paste --watch cliphist store"
 spawn-sh-at-startup "waybar -c $NIRICONF/waybar/config -s $NIRICONF/waybar/style.css"

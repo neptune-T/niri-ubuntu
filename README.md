@@ -52,6 +52,8 @@ These are not fully managed by this repo, but the setup looks best with:
 - Wallpaper picker defaults to `~/图片/wallpaper` on your current setup, with `~/Pictures/wallpapers` as fallback
 - During deploy, the managed `wallpapers/` directory is refreshed from your wallpaper folder and the old bundled wallpaper files are replaced
 - The wallpaper picker now auto-selects `fit` for portrait images and `fill` for landscape images
+- Wallpaper processing works with either ImageMagick `magick` or legacy `convert`
+- On your current setup, Clash is auto-started when a supported Clash desktop app is installed
 
 ## Installation
 

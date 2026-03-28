@@ -25,7 +25,7 @@ fi
 if have_cmd wofi; then
   case "$mode" in
     launcher)
-      exec wofi --show drun
+      exec wofi --show drun --allow-images --insensitive
       ;;
     dmenu)
       declare -a wofi_args=(--dmenu)
