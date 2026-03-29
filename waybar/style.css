@@ -148,10 +148,6 @@ tooltip label {
   background: rgba(215, 223, 240, 0.08);
 }
 
-#network {
-  max-width: 180px;
-}
-
 #clock {
   margin-right: 14px;
   color: @content_main;

@@ -17,6 +17,38 @@ echo "USER=${USER:-unknown}"
 
 export NIRICONF
 export PATH="$HOME/.local/bin:$HOME/.cargo/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
+
+# Ubuntu Snap support
+if [ -d "/snap/bin" ]; then
+  export PATH="/snap/bin:$PATH"
+fi
+
+# Set up XDG_DATA_DIRS to include snap and flatpak application directories
+# so that fuzzel/gtk-launch can find .desktop entries for those apps
+_xdg_data_base="${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
+if [ -d "/var/lib/snapd/desktop" ]; then
+  _xdg_data_base="/var/lib/snapd/desktop:$_xdg_data_base"
+fi
+if [ -d "/var/lib/flatpak/exports/share" ]; then
+  _xdg_data_base="/var/lib/flatpak/exports/share:$_xdg_data_base"
+fi
+if [ -d "$HOME/.local/share/flatpak/exports/share" ]; then
+  _xdg_data_base="$HOME/.local/share/flatpak/exports/share:$_xdg_data_base"
+fi
+export XDG_DATA_DIRS="$_xdg_data_base"
+unset _xdg_data_base
+
+# Input method environment variables
+export GTK_IM_MODULE=fcitx
+export QT_IM_MODULE=fcitx
+export XMODIFIERS=@im=fcitx
+# (these are overridden below if only ibus is found)
+if ! command -v fcitx5 >/dev/null 2>&1 && command -v ibus >/dev/null 2>&1; then
+  export GTK_IM_MODULE=ibus
+  export QT_IM_MODULE=ibus
+  export XMODIFIERS=@im=ibus
+fi
+
 export XDG_CURRENT_DESKTOP=niri
 export XDG_SESSION_DESKTOP=niri
 export XDG_SESSION_TYPE=wayland

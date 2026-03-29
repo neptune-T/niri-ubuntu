@@ -10,6 +10,15 @@ shift || true
 if have_cmd fuzzel; then
   case "$mode" in
     launcher)
+      # Prefer gtk-launch for reliable desktop-entry execution on Ubuntu
+      # (handles Snap, Flatpak, and apps with complex Exec fields correctly).
+      # fuzzel --print-only prints the desktop entry ID instead of exec-ing it.
+      if have_cmd gtk-launch; then
+        desktop_id=$(fuzzel --print-only "$@" 2>/dev/null || true)
+        if [ -n "$desktop_id" ]; then
+          exec gtk-launch "$desktop_id"
+        fi
+      fi
       exec fuzzel "$@"
       ;;
     dmenu)
@@ -25,7 +34,7 @@ fi
 if have_cmd wofi; then
   case "$mode" in
     launcher)
-      exec wofi --show drun --allow-images --insensitive
+      exec wofi --show drun --allow-images --insensitive --normal-window
       ;;
     dmenu)
       declare -a wofi_args=(--dmenu)

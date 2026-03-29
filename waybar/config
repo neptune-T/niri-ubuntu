@@ -22,11 +22,3 @@
     "group/time"
   ]
 }
-    "pulseaudio",
-    "battery",
-    "network",
-    "power-profiles-daemon",
-    "custom/swayidle",
-    "clock"
-  ]
-}

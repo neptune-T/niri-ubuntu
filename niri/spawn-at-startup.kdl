@@ -1,6 +1,7 @@
 // Spawn processes at niri startup.
 // https://github.com/YaLTeR/niri/wiki/Configuration:-Miscellaneous#spawn-sh-at-startup
 spawn-sh-at-startup "command -v udiskie >/dev/null 2>&1 && udiskie"
+spawn-sh-at-startup "if command -v fcitx5 >/dev/null 2>&1; then fcitx5 -d --replace; elif command -v ibus-daemon >/dev/null 2>&1; then ibus-daemon -drx; fi"
 spawn-sh-at-startup "$NIRICONF/scripts/start-clash.sh"
 spawn-sh-at-startup "$NIRICONF/scripts/start-polkit-agent.sh"
 spawn-sh-at-startup "wl-paste --watch cliphist store"

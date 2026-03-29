@@ -54,6 +54,7 @@ These are not fully managed by this repo, but the setup looks best with:
 - The wallpaper picker now auto-selects `fit` for portrait images and `fill` for landscape images
 - Wallpaper processing works with either ImageMagick `magick` or legacy `convert`
 - On your current setup, Clash is auto-started when a supported Clash desktop app is installed
+- If Waybar fails to appear, its startup log is written to `/tmp/niri-waybar.log`
 
 ## Installation
 
